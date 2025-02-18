@@ -2184,7 +2184,7 @@ class ClusterPipeline(RedisCluster):
                 if node_name not in nodes:
                     redis_node = self.get_redis_connection(node)
                     try:
-                        connection = get_connection(redis_node, c.args)
+                        connection = get_connection(redis_node, *c.args)
                     except (ConnectionError, TimeoutError):
                         for n in nodes.values():
                             n.connection_pool.release(n.connection)

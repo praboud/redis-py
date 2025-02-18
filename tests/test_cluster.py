@@ -2998,6 +2998,21 @@ class TestClusterPipeline:
             str(ex.value).startswith("shard_hint is deprecated in cluster mode") is True
         )
 
+    def test_pipeline_get_connection_called_with_command(self, request):
+        calls = []
+        class MockConnectionPool(ConnectionPool):
+            def get_connection(self, command_name, *keys, **options) -> "Connection":
+                nonlocal calls
+                calls += [command_name]
+                return super(MockConnectionPool, self).get_connection(command_name, *keys, **options)
+
+        with _get_client(redis.Redis, request, connection_pool_class=MockConnectionPool) as r:
+            with r.pipeline() as pipe:
+                pipe.set('foo', 'bar')
+                pipe.execute()
+
+            assert calls[-1] == 'SET'
+
     def test_redis_cluster_pipeline(self, r):
         """
         Test that we can use a pipeline with the RedisCluster class
